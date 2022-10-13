@@ -9,6 +9,14 @@ import {logLevel, robotEventsToken} from './lib/config';
 import {RobotEventsClient, SeasonsRequestBuilder} from './lib/robot-events';
 import {RobotEventsV1Client} from './lib/robot-events/v1';
 import {SkillsCache} from './lib/skills-cache';
+import { CuratedLinks } from './lib/curated-links';
+
+try {
+  const dotenv = require('dotenv');
+  dotenv.config( {
+    path: '../.env'
+  } );
+} catch(e: any) {}
 
 export const robotEventsClient = new RobotEventsClient({
   token: robotEventsToken,
@@ -20,6 +28,8 @@ export const skillsCache = new SkillsCache(
   robotEventsClient,
   robotEventsV1Client
 );
+
+export const curated_links_object = new CuratedLinks();
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(
   RegisterBehavior.Overwrite
@@ -37,7 +47,9 @@ const client = new SapphireClient({
 });
 
 const main = async () => {
-  await setupSkillsCache().catch(client.logger.error);
+  await curated_links_object.init();
+  setupSkillsCache().catch(client.logger.error);
+  
   try {
     client.logger.info('Logging in');
     await client.login();
@@ -59,5 +71,6 @@ const setupSkillsCache = async () => {
     3_600_000
   );
 };
+
 
 main();
